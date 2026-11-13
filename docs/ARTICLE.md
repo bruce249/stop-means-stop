@@ -88,6 +88,8 @@ We could not open `Ashish-Soni08/lexsi-escalation-safe-agent` when this was writ
 
 43.4 minutes on one L40S is about $1.30. The main train is 1.19 million tokens. A closed model billed per token, called once per turn for every episode of this eval, costs more than the whole fine-tune as soon as its price is above a fraction of a cent per thousand tokens, and it still has to be re-prompted every time. The adapter is a local LoRA on a CC-BY-NC model.
 
+Code: https://github.com/bruce249/stop-means-stop
+
 ```bash
 python scripts/make_data.py
 python scripts/evaluate.py --policy hf --name base

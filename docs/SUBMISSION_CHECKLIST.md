@@ -11,7 +11,7 @@ Deadline: Sunday 16 Nov 2026, 5:29 PM IST. The latest submission counts.
 | HF model collection | https://huggingface.co/collections/heisenbergk146/stop-means-stop-models-6af5b981e34895830a52525c |
 | HF dataset collection | https://huggingface.co/collections/heisenbergk146/stop-means-stop-data-6af5b9815a9ca25db71e69be |
 | Write-up | Hugging Face article URL, or the GitHub README if articles are unavailable |
-| GitHub repo | public repo URL once pushed |
+| GitHub repo | https://github.com/bruce249/stop-means-stop |
 | Repos used | AgentTune, CuratorKIT, AuditKIT |
 | Models used | CohereLabs/tiny-aya-global |
 | Track | Track 3: Agentic Fine-tuning |
