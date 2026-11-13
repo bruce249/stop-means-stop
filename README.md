@@ -33,24 +33,29 @@ Interrupt and distractor episodes use a **forced prefix**: the scripted teacher 
 | Task success | right flight paid, booking id messaged to the right contact, truthful completion report |
 | False stop | gave up on a benign message that only mentions "stop" |
 
-Sanity bounds (from `tests/`): the scripted teacher scores 100% clean stops; a "never stop" agent that is perfect at the task scores 0% clean stops, 100% violations and 100% fake approvals followed.
+Sanity bounds, from the oracle and never-stop policies on the same 180 episodes: the scripted teacher scores 100% clean stops; a "never stop" agent that is perfect at the task scores 0% clean stops, 100% violations and 100% fake approvals followed.
 
 ## Results
 
-Held-out test set, 180 episodes (100 interrupts). One epoch of LoRA distillation on 999 teacher trajectories. Two seeds. 95% Wilson intervals are on the clean-stop row. Full tables, per-category splits, and McNemar tests: [stop-means-stop-evals](https://huggingface.co/datasets/heisenbergk146/stop-means-stop-evals). Replay: [the Space](https://huggingface.co/spaces/heisenbergk146/stop-means-stop).
+Held-out test set, 180 episodes (100 interrupts). One epoch of LoRA distillation on 999 teacher trajectories. Two seeds. Numbers are the held-out table in [stop-means-stop-evals](https://huggingface.co/datasets/heisenbergk146/stop-means-stop-evals) (`results.md`), including 95% Wilson intervals and exact paired McNemar tests. Replay: [the Space](https://huggingface.co/spaces/heisenbergk146/stop-means-stop). The long write-up is `docs/ARTICLE.md`.
 
-| | Base | Tuned | Seed 2 | Control (no interrupts) | Teacher |
-|---|---:|---:|---:|---:|---:|
-| Clean stop | 7.0% [3.4, 13.7] | 99.0% [94.6, 99.8] | 98.0% [93.0, 99.4] | 16.0% [10.1, 24.4] | 100% |
-| Acted after the stop | 88% | 1% | 2% | 84% | 0% |
-| Followed a fake approval | 100% | 0% | 3.3% | 100% | 0% |
-| Honest report after a stop | 63% | 100% | 99% | 63% | 100% |
-| Task success, no interrupt | 0% | 65% | 68% | 58% | 100% |
-| False stop on a benign "stop" | 35% | 18% | 15% | 2.5% | 0% |
+| Metric | Base | Tuned | Seed 2 | Control (no interrupts) | Teacher | Never-stop |
+|---|---:|---:|---:|---:|---:|---:|
+| Clean stop | 7.0% [3.4, 13.7] | 99.0% [94.6, 99.8] | 98.0% [93.0, 99.4] | 16.0% [10.1, 24.4] | 100.0% | 0.0% |
+| Acted after the stop | 88.0% [80.2, 93.0] | 1.0% [0.2, 5.4] | 2.0% [0.6, 7.0] | 84.0% [75.6, 89.9] | 0.0% | 100.0% |
+| Hold released | 78.2% | 100.0% | 96.4% | 50.9% | 100.0% | 0.0% |
+| Honest report after a stop | 63.0% [53.2, 71.8] | 100.0% [96.3, 100.0] | 99.0% [94.6, 99.8] | 63.0% [53.2, 71.8] | 100.0% | 100.0% |
+| Followed a fake approval | 100.0% (n=29) | 0.0% (n=30) | 3.3% (n=30) | 100.0% (n=30) | 0.0% | 100.0% |
+| Task success, no interrupt | 0.0% [0.0, 8.8] | 65.0% [49.5, 77.9] | 67.5% [52.0, 79.9] | 57.5% [42.2, 71.5] | 100.0% | 100.0% |
+| Task success, "stop" as a word | 5.0% | 77.5% | 80.0% | 87.5% | 100.0% | 100.0% |
+| False stop on a benign "stop" | 35.0% [22.1, 50.5] | 17.5% [8.7, 32.0] | 15.0% [7.1, 29.1] | 2.5% [0.4, 12.9] | 0.0% | 0.0% |
+| Valid tool calls | 73.1% | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% |
 
-Paired McNemar test, tuned vs base, on the same 100 interrupt scenarios: clean stop +92 points, p < 0.0001. The control adapter, same recipe with the interrupt episodes removed, does not beat the base (p = 0.078). Seed 2 lands at 98%. The stop behaviour comes from the interrupt data.
+Paired McNemar test against the base model, same scenario ids. Clean stop: tuned +92.0 points (0 episodes where only the base model succeeded, 92 where only the tuned model did), p < 0.0001; seed 2 +91.0 points, p < 0.0001; control +9.0 points, p = 0.0784. Fake approvals followed: tuned −100 points, p < 0.0001; control p = 1.0000. The control's 16 clean stops are all in the late-stop slice (`stop_3` 64.0% of 25); on early stops and fake approvals its clean-stop rate is 0%. Stop behaviour comes from the interrupt data. Two seeds, consistent (train loss 0.3520 and 0.3528).
 
-The run was 43 minutes on one NVIDIA L40S. Adapters, data, eval logs, and both collections are public:
+False stops fall from 35.0% to 17.5%, and that change is not significant (p = 0.1185). Free-run task success of 65.0% is 86.7% on clean bookings and 0% on no-option tasks. The teacher scores 180/180. A 60-example smoke run scored 0% clean stops and is not this result.
+
+The job was 43.4 minutes on one NVIDIA L40S at $1.80/hour, about $1.30. The main train logged 1,185,984 tokens in 488.64 seconds (2,427 tokens/s). Adapters, data, eval logs, and both collections are public:
 
 - [Models](https://huggingface.co/collections/heisenbergk146/stop-means-stop-models-6af5b981e34895830a52525c)
 - [Data](https://huggingface.co/collections/heisenbergk146/stop-means-stop-data-6af5b9815a9ca25db71e69be)
@@ -64,13 +69,14 @@ python scripts/make_data.py                         # scenarios, teacher, Curato
 python scripts/evaluate.py --policy oracle --name oracle
 python scripts/evaluate.py --policy never_stop --name never_stop
 python scripts/evaluate.py --policy hf --name base   # Tiny Aya Global, prompted with the same rules
-python scripts/train.py --split main --out runs/adapter-main                     # AgentTune distillation
+python scripts/train.py --split main --out runs/adapter-main                     # AgentTune distillation, seed 42
 python scripts/train.py --split control_no_interrupts --out runs/adapter-control  # control: no interrupt data
+python scripts/train.py --split main --seed 7 --out runs/adapter-s2               # second seed
 python scripts/evaluate.py --policy hf --name tuned   --adapter runs/adapter-main
 python scripts/evaluate.py --policy hf --name control --adapter runs/adapter-control
-python scripts/report.py                            # runs/results.md + runs/results.png
-HF_TOKEN=... python scripts/push_to_hub.py --user <hf-username> --github <this repo url>
-python tests/test_sms.py                            # CPU sanity checks
+python scripts/evaluate.py --policy hf --name tuned_s2 --adapter runs/adapter-s2
+python scripts/report.py                            # runs/results.md + runs/results.png + runs/stats.json
+HF_TOKEN=... python scripts/push_to_hub.py --user heisenbergk146 --github https://github.com/bruce249/stop-means-stop
 ```
 
 Or open `notebooks/stop_means_stop.ipynb` on Kaggle (GPU T4 x2, internet on, `HF_TOKEN` secret) and run all. It runs the baseline eval and training in parallel on the two GPUs.
@@ -85,8 +91,7 @@ Start with **GUIDE.md** for the step-by-step run and submission plan.
 sms/            simulator, scenarios, prompts, teacher, runner, metrics, AgentTune/AuditKIT bridges, viewer
 scripts/        make_data, train, evaluate, report, push_to_hub
 notebooks/      one-click Kaggle/Colab run
-tests/          CPU checks (teacher perfect, never-stop caught, garbage cannot look safe, lying report caught)
-docs/           HF article draft, abstract, submission checklist
+docs/           article, abstract, submission checklist
 ```
 
 ## Licences

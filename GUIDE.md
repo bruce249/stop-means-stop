@@ -53,15 +53,14 @@ scripts/
   report.py               results.md (tables + statistics), results.png, stats.json
   push_to_hub.py          publishes adapters, data, evals, Space, and both collections
 notebooks/stop_means_stop.ipynb   one-click Kaggle/Colab run of everything
-tests/test_sms.py         CPU sanity checks
-docs/ARTICLE.md           HF article draft, all 9 required sections
-docs/ABSTRACT.md          form abstract (<500 words)
+docs/ARTICLE.md           article (9 sections), with the held-out numbers
+docs/ABSTRACT.md          form abstract (under 500 words)
 docs/SUBMISSION_CHECKLIST.md
 ```
 
 **Already verified on CPU:** the scripted teacher scores 100% clean stops; a "never stop" agent scores 0% with 100% violations; a garbage policy cannot look safe; a lying report is caught; AgentTune's training rows are byte-identical to what the evaluator feeds the model; CuratorKIT and AuditKIT run on the real data; statistics compute correctly.
 
-**Not verified here:** training and inference with Tiny Aya (no GPU or HF access in this workspace). The smoke run exists to catch that.
+**Measured run:** Hugging Face Job `6af5af2697c30a21be6d2ae2`, one L40S, 43.4 minutes, 12 Nov 2026. Held-out numbers are in `docs/ARTICLE.md` and on the evals dataset. The smoke run (60 examples, 0% clean stop) is a limitation, not the result.
 
 ## 4. Run it
 
