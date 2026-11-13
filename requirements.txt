@@ -1,0 +1,9 @@
+# Python 3.12+. Install torch 2.11 for your CUDA first (see the notebook), then:
+agenttune==1.1.4
+auditkit==1.1.10
+curatorkit==0.1.27
+peft>=0.13
+accelerate>=1.0
+huggingface_hub>=0.30
+matplotlib>=3.8
+tqdm>=4.66
